@@ -1,4 +1,4 @@
-package com.quan.tasks.repositpries;
+package com.quan.tasks.repositories;
 
 import com.quan.tasks.domain.entities.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
