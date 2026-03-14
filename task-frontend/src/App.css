@@ -416,6 +416,82 @@ h1 {
   font-weight: 600;
 }
 
+.add-task-btn {
+  background-color: #646cff22;
+  color: #646cff;
+  border: 1px solid #646cff44;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-task-btn:hover {
+  background-color: #646cff;
+  color: white;
+}
+
+.task-creation-overlay, .task-creation-inline {
+  background-color: #333;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #444;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.task-form h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  color: #fff;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.priority-selector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.priority-btn {
+  flex: 1;
+  padding: 0.4rem;
+  border: 1px solid #555;
+  background-color: #2a2a2a;
+  color: #888;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.priority-btn.low.active { background-color: #4caf50; color: white; border-color: #4caf50; }
+.priority-btn.medium.active { background-color: #ffa500; color: white; border-color: #ffa500; }
+.priority-btn.high.active { background-color: #ff4d4d; color: white; border-color: #ff4d4d; }
+
+.priority-btn:hover:not(.active) {
+  background-color: #444;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

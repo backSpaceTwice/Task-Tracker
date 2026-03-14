@@ -19,6 +19,14 @@ function App() {
   const [view, setView] = useState("dashboard"); // 'dashboard' or 'detail'
   const [selectedList, setSelectedList] = useState(null);
 
+  // Task Creation states
+  const [addingTaskToListId, setAddingTaskToListId] = useState(null);
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
+  const [taskDueDate, setTaskDueDate] = useState("");
+  const [taskPriority, setTaskPriority] = useState("MEDIUM");
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
+
   const fetchTaskLists = () => {
     setLoading(true);
     fetch("http://localhost:8080/task-lists")
@@ -177,7 +185,65 @@ function App() {
   const handleBackToDashboard = () => {
     setView("dashboard");
     setSelectedList(null);
+    setAddingTaskToListId(null);
     fetchTaskLists();
+  };
+
+  const handleCreateTask = (e, listId) => {
+    e.preventDefault();
+    if (!taskTitle.trim()) return;
+
+    setIsCreatingTask(true);
+    fetch(`http://localhost:8080/task-lists/${listId}/tasks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: taskTitle,
+        description: taskDescription,
+        dueDate: taskDueDate ? `${taskDueDate}T00:00:00` : null,
+        priority: taskPriority,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
+      .then(() => {
+        setTaskTitle("");
+        setTaskDescription("");
+        setTaskDueDate("");
+        setTaskPriority("MEDIUM");
+        setAddingTaskToListId(null);
+        setIsCreatingTask(false);
+        
+        if (view === 'detail') {
+          fetchSingleTaskList(listId);
+        } else {
+          fetchTaskLists();
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(`Task creation failed: ${err.message}.`);
+        setIsCreatingTask(false);
+      });
+  };
+
+  const toggleAddTask = (e, listId) => {
+    e?.stopPropagation();
+    if (addingTaskToListId === listId) {
+      setAddingTaskToListId(null);
+    } else {
+      setAddingTaskToListId(listId);
+      setTaskTitle("");
+      setTaskDescription("");
+      setTaskDueDate("");
+      setTaskPriority("MEDIUM");
+    }
   };
 
   useEffect(() => {
@@ -282,6 +348,13 @@ function App() {
                       <h2>{list.title}</h2>
                       <div className="header-actions">
                         <button 
+                          className="add-task-btn"
+                          onClick={(e) => toggleAddTask(e, list.id)}
+                          title="Add Task"
+                        >
+                          + Task
+                        </button>
+                        <button 
                           className="edit-icon-btn" 
                           onClick={(e) => startEditing(e, list)}
                           title="Edit Task List"
@@ -300,6 +373,64 @@ function App() {
                     </div>
                     <p className="description">{list.description}</p>
                   </>
+                )}
+
+                {addingTaskToListId === list.id && (
+                  <div className="task-creation-overlay" onClick={(e) => e.stopPropagation()}>
+                    <form onSubmit={(e) => handleCreateTask(e, list.id)} className="task-form">
+                      <h3>New Task</h3>
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          value={taskTitle}
+                          onChange={(e) => setTaskTitle(e.target.value)}
+                          placeholder="Task Title"
+                          required
+                          autoFocus
+                        />
+                      </div>
+                      <div className="form-group">
+                        <textarea
+                          value={taskDescription}
+                          onChange={(e) => setTaskDescription(e.target.value)}
+                          placeholder="Task Description"
+                        />
+                      </div>
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Due Date</label>
+                          <input
+                            type="date"
+                            value={taskDueDate}
+                            onChange={(e) => setTaskDueDate(e.target.value)}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Priority</label>
+                          <div className="priority-selector">
+                            {['LOW', 'MEDIUM', 'HIGH'].map(p => (
+                              <button
+                                key={p}
+                                type="button"
+                                className={`priority-btn ${p.toLowerCase()} ${taskPriority === p ? 'active' : ''}`}
+                                onClick={() => setTaskPriority(p)}
+                              >
+                                {p}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="form-actions">
+                        <button type="submit" className="save-btn" disabled={isCreatingTask}>
+                          {isCreatingTask ? "Adding..." : "Add"}
+                        </button>
+                        <button type="button" className="cancel-btn" onClick={(e) => toggleAddTask(e, null)}>
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 )}
 
                 <div className="progress-bar">
@@ -353,6 +484,12 @@ function App() {
                   <h2>{selectedList.title}</h2>
                   <div className="header-actions">
                     <button 
+                      className="add-task-btn"
+                      onClick={(e) => toggleAddTask(e, selectedList.id)}
+                    >
+                      + Add Task
+                    </button>
+                    <button 
                       className="edit-icon-btn" 
                       onClick={(e) => startEditing(e, selectedList)}
                       title="Edit Task List"
@@ -371,6 +508,66 @@ function App() {
                 </div>
                 <p className="description large">{selectedList.description}</p>
               </>
+            )}
+
+            {addingTaskToListId === selectedList.id && (
+              <div className="task-creation-inline">
+                <form onSubmit={(e) => handleCreateTask(e, selectedList.id)} className="task-form">
+                  <h3>Add New Task to "{selectedList.title}"</h3>
+                  <div className="form-group">
+                    <label>Title</label>
+                    <input
+                      type="text"
+                      value={taskTitle}
+                      onChange={(e) => setTaskTitle(e.target.value)}
+                      placeholder="What needs to be done?"
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Description</label>
+                    <textarea
+                      value={taskDescription}
+                      onChange={(e) => setTaskDescription(e.target.value)}
+                      placeholder="More details..."
+                    />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Due Date</label>
+                      <input
+                        type="date"
+                        value={taskDueDate}
+                        onChange={(e) => setTaskDueDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Priority</label>
+                      <div className="priority-selector">
+                        {['LOW', 'MEDIUM', 'HIGH'].map(p => (
+                          <button
+                            key={p}
+                            type="button"
+                            className={`priority-btn ${p.toLowerCase()} ${taskPriority === p ? 'active' : ''}`}
+                            onClick={() => setTaskPriority(p)}
+                          >
+                            {p}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="form-actions">
+                    <button type="submit" className="save-btn" disabled={isCreatingTask}>
+                      {isCreatingTask ? "Adding Task..." : "Add Task"}
+                    </button>
+                    <button type="button" className="cancel-btn" onClick={(e) => toggleAddTask(e, null)}>
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
             )}
 
             <div className="progress-bar large">
