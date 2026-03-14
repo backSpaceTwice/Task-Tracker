@@ -161,6 +161,61 @@ h1 {
   margin-bottom: 0.5rem;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.edit-icon-btn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.edit-icon-btn:hover {
+  color: #646cff;
+  background-color: rgba(100, 108, 255, 0.1);
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.save-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.cancel-btn {
+  background-color: #666;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
 .task-list-header h2 {
   margin: 0;
   color: #fff;
@@ -279,6 +334,69 @@ h1 {
   color: #666;
   font-style: italic;
   font-size: 0.9rem;
+}
+
+.task-list-card.clickable {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.task-list-card.clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 12px rgba(0,0,0,0.2);
+}
+
+.header-title {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.view-badge {
+  font-size: 0.9rem;
+  background-color: #646cff22;
+  color: #646cff;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.back-btn {
+  background-color: transparent;
+  color: #646cff;
+  border: 1px solid #646cff;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s;
+  margin-right: 1rem;
+}
+
+.back-btn:hover {
+  background-color: #646cff11;
+}
+
+.main-card {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.description.large {
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.progress-bar.large {
+  height: 20px;
+  margin-bottom: 3rem;
+}
+
+.progress-bar.large .progress-text {
+  top: -25px;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 @media (prefers-color-scheme: light) {
