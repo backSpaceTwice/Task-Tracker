@@ -147,6 +147,33 @@ function App() {
       });
   };
 
+  const handleDeleteTaskList = (e, id) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this task list? This action cannot be undone.")) {
+      return;
+    }
+
+    setLoading(true);
+    fetch(`http://localhost:8080/task-lists/${id}`, {
+      method: "DELETE",
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
+        }
+        if (view === "detail") {
+          handleBackToDashboard();
+        } else {
+          fetchTaskLists();
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(`Delete failed: ${err.message}.`);
+        setLoading(false);
+      });
+  };
+
   const handleBackToDashboard = () => {
     setView("dashboard");
     setSelectedList(null);
@@ -261,6 +288,13 @@ function App() {
                         >
                           ✎
                         </button>
+                        <button 
+                          className="delete-icon-btn" 
+                          onClick={(e) => handleDeleteTaskList(e, list.id)}
+                          title="Delete Task List"
+                        >
+                          🗑
+                        </button>
                         <span className="task-count">{list.count || 0} tasks</span>
                       </div>
                     </div>
@@ -324,6 +358,13 @@ function App() {
                       title="Edit Task List"
                     >
                       ✎
+                    </button>
+                    <button 
+                      className="delete-icon-btn" 
+                      onClick={(e) => handleDeleteTaskList(e, selectedList.id)}
+                      title="Delete Task List"
+                    >
+                      🗑
                     </button>
                     <span className="task-count">{selectedList.count || 0} tasks</span>
                   </div>
