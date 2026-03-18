@@ -203,7 +203,6 @@ function App() {
       <Header 
         view={view} 
         onBack={handleBackToDashboard} 
-        onRefresh={view === 'dashboard' ? fetchTaskLists : () => fetchSingleTaskList(selectedList.id)} 
       />
 
       {error && <div className="error-msg" onClick={() => setError(null)}>{error} (Click to dismiss)</div>}

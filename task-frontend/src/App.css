@@ -279,28 +279,59 @@ input:focus, textarea:focus {
   border: 2px dashed var(--color-tan);
 }
 
-.add-task-btn {
-  background-color: transparent;
-  color: var(--color-terracotta);
-  border: 1px solid var(--color-terracotta);
-  padding: 0.2rem 0.6rem;
-  font-size: 0.8rem;
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.add-task-btn:hover {
-  background-color: var(--color-terracotta);
-  color: white;
-}
-
-.error-msg {
-  background-color: #fee;
-  color: #c44;
-  border: 1px solid #ecc;
-  padding: 1rem;
-  border-radius: 10px;
-  margin-bottom: 2rem;
+.edit-icon-btn, .delete-icon-btn {
+  background: none;
+  border: none;
+  color: var(--color-tan);
+  font-size: 1.1rem;
   cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
 }
+
+.edit-icon-btn:hover {
+  color: var(--color-slate);
+  background-color: var(--color-beige);
+}
+
+.delete-icon-btn:hover {
+  color: var(--color-terracotta);
+  background-color: #feebe6;
+}
+
+.delete-icon-btn.small {
+  font-size: 0.9rem;
+  padding: 0.2rem;
+}
+
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.task-count {
+  font-size: 0.75rem;
+  background-color: var(--color-beige);
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  color: var(--color-brown);
+  font-weight: 700;
+  margin-left: 0.5rem;
+}
+
+/* Add Task Overlay */
 
 /* Utility */
 .loading {

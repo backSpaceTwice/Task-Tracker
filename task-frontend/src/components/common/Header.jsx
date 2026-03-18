@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Header = ({ view, onBack, onRefresh }) => {
+const Header = ({ view, onBack }) => {
   return (
     <header>
       <div className="header-title" onClick={onBack} style={{ cursor: 'pointer' }}>
@@ -13,9 +13,6 @@ const Header = ({ view, onBack, onRefresh }) => {
             ← Back to Dashboard
           </button>
         )}
-        <button className="refresh-btn" onClick={onRefresh}>
-          Refresh Data
-        </button>
       </div>
     </header>
   );
