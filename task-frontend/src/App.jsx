@@ -27,6 +27,15 @@ function App() {
   const [taskPriority, setTaskPriority] = useState("MEDIUM");
   const [isCreatingTask, setIsCreatingTask] = useState(false);
 
+  // Task Editing states
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editTaskTitle, setEditTaskTitle] = useState("");
+  const [editTaskDescription, setEditTaskDescription] = useState("");
+  const [editTaskDueDate, setEditTaskDueDate] = useState("");
+  const [editTaskPriority, setEditTaskPriority] = useState("MEDIUM");
+  const [editTaskStatus, setEditTaskStatus] = useState("OPEN");
+  const [isUpdatingTask, setIsUpdatingTask] = useState(false);
+
   const fetchTaskLists = () => {
     setLoading(true);
     fetch("http://localhost:8080/task-lists")
@@ -246,6 +255,62 @@ function App() {
     }
   };
 
+  const startEditingTask = (e, task) => {
+    e.stopPropagation();
+    setEditingTaskId(task.id);
+    setEditTaskTitle(task.title);
+    setEditTaskDescription(task.description || "");
+    setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : "");
+    setEditTaskPriority(task.priority);
+    setEditTaskStatus(task.status);
+  };
+
+  const cancelEditingTask = (e) => {
+    e?.stopPropagation();
+    setEditingTaskId(null);
+  };
+
+  const handleUpdateTask = (e, listId) => {
+    e.preventDefault();
+    if (!editTaskTitle.trim()) return;
+
+    setIsUpdatingTask(true);
+    fetch(`http://localhost:8080/task-lists/${listId}/tasks/${editingTaskId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: editingTaskId,
+        title: editTaskTitle,
+        description: editTaskDescription,
+        dueDate: editTaskDueDate ? `${editTaskDueDate}T00:00:00` : null,
+        priority: editTaskPriority,
+        status: editTaskStatus,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
+      .then(() => {
+        setEditingTaskId(null);
+        setIsUpdatingTask(false);
+        if (view === 'detail') {
+          fetchSingleTaskList(listId);
+        } else {
+          fetchTaskLists();
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(`Task update failed: ${err.message}.`);
+        setIsUpdatingTask(false);
+      });
+  };
+
   useEffect(() => {
     fetchTaskLists();
   }, []);
@@ -372,6 +437,59 @@ function App() {
                       </div>
                     </div>
                     <p className="description">{list.description}</p>
+                    <div className="tasks-section">
+                      {list.tasks && list.tasks.length > 0 && (
+                        <ul className="task-items">
+                          {list.tasks.map((task) => (
+                            <li 
+                              key={task.id} 
+                              className={`task-item status-${task.status.toLowerCase()} clickable`}
+                              onClick={(e) => startEditingTask(e, task)}
+                            >
+                              {editingTaskId === task.id ? (
+                                <form onSubmit={(e) => handleUpdateTask(e, list.id)} className="task-edit-form" onClick={(e) => e.stopPropagation()}>
+                                  <div className="form-group">
+                                    <input
+                                      type="text"
+                                      value={editTaskTitle}
+                                      onChange={(e) => setEditTaskTitle(e.target.value)}
+                                      required
+                                      autoFocus
+                                    />
+                                  </div>
+                                  <div className="form-row small">
+                                    <div className="form-group">
+                                      <select 
+                                        value={editTaskStatus} 
+                                        onChange={(e) => setEditTaskStatus(e.target.value)}
+                                      >
+                                        <option value="OPEN">Open</option>
+                                        <option value="CLOSED">Closed</option>
+                                      </select>
+                                    </div>
+                                    <div className="edit-actions">
+                                      <button type="submit" className="save-btn" disabled={isUpdatingTask}>
+                                        ✓
+                                      </button>
+                                      <button type="button" className="cancel-btn" onClick={cancelEditingTask}>
+                                        ✕
+                                      </button>
+                                    </div>
+                                  </div>
+                                </form>
+                              ) : (
+                                <div className="task-info">
+                                  <span className="task-title">{task.title}</span>
+                                  <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>
+                                    {task.priority[0]}
+                                  </span>
+                                </div>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   </>
                 )}
 
@@ -585,19 +703,89 @@ function App() {
               {selectedList.tasks && selectedList.tasks.length > 0 ? (
                 <ul className="task-items">
                   {selectedList.tasks.map((task) => (
-                    <li key={task.id} className={`task-item status-${task.status.toLowerCase()}`}>
-                      <div className="task-info">
-                        <span className="task-title">{task.title}</span>
-                        <div className="task-meta">
-                          <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>
-                            {task.priority}
-                          </span>
-                          <span className="due-date">
-                            {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No due date"}
-                          </span>
-                        </div>
-                      </div>
-                      <p className="task-desc">{task.description}</p>
+                    <li 
+                      key={task.id} 
+                      className={`task-item status-${task.status.toLowerCase()} clickable`}
+                      onClick={(e) => startEditingTask(e, task)}
+                    >
+                      {editingTaskId === task.id ? (
+                        <form onSubmit={(e) => handleUpdateTask(e, selectedList.id)} className="task-edit-form" onClick={(e) => e.stopPropagation()}>
+                          <div className="form-group">
+                            <input
+                              type="text"
+                              value={editTaskTitle}
+                              onChange={(e) => setEditTaskTitle(e.target.value)}
+                              required
+                              autoFocus
+                            />
+                          </div>
+                          <div className="form-group">
+                            <textarea
+                              value={editTaskDescription}
+                              onChange={(e) => setEditTaskDescription(e.target.value)}
+                              placeholder="Description"
+                            />
+                          </div>
+                          <div className="form-row small">
+                            <div className="form-group">
+                              <label>Due</label>
+                              <input
+                                type="date"
+                                value={editTaskDueDate}
+                                onChange={(e) => setEditTaskDueDate(e.target.value)}
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label>Status</label>
+                              <select 
+                                value={editTaskStatus} 
+                                onChange={(e) => setEditTaskStatus(e.target.value)}
+                              >
+                                <option value="OPEN">Open</option>
+                                <option value="CLOSED">Closed</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div className="form-group">
+                            <label>Priority</label>
+                            <div className="priority-selector small">
+                              {['LOW', 'MEDIUM', 'HIGH'].map(p => (
+                                <button
+                                  key={p}
+                                  type="button"
+                                  className={`priority-btn ${p.toLowerCase()} ${editTaskPriority === p ? 'active' : ''}`}
+                                  onClick={() => setEditTaskPriority(p)}
+                                >
+                                  {p}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="form-actions">
+                            <button type="submit" className="save-btn" disabled={isUpdatingTask}>
+                              {isUpdatingTask ? "..." : "Save"}
+                            </button>
+                            <button type="button" className="cancel-btn" onClick={cancelEditingTask}>
+                              ✕
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <>
+                          <div className="task-info">
+                            <span className="task-title">{task.title}</span>
+                            <div className="task-meta">
+                              <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>
+                                {task.priority}
+                              </span>
+                              <span className="due-date">
+                                {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No due date"}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="task-desc">{task.description}</p>
+                        </>
+                      )}
                     </li>
                   ))}
                 </ul>

@@ -492,6 +492,59 @@ h1 {
   justify-content: flex-end;
 }
 
+.task-item.clickable {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.task-item.clickable:hover {
+  background-color: #3a3a3a;
+}
+
+.task-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-row.small {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.priority-selector.small {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.priority-selector.small .priority-btn {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.65rem;
+}
+
+.task-edit-form .form-group label {
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.task-edit-form input,
+.task-edit-form textarea,
+.task-edit-form select {
+  padding: 0.4rem;
+  font-size: 0.85rem;
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  color: white;
+  border-radius: 4px;
+}
+
+.task-edit-form .save-btn,
+.task-edit-form .cancel-btn {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.8rem;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
