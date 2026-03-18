@@ -545,6 +545,17 @@ h1 {
   font-size: 0.8rem;
 }
 
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.delete-icon-btn.small {
+  font-size: 0.9rem;
+  padding: 0.1rem;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

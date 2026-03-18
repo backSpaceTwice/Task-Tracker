@@ -191,6 +191,33 @@ function App() {
       });
   };
 
+  const handleDeleteTask = (e, listId, taskId) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this task?")) {
+      return;
+    }
+
+    setLoading(true);
+    fetch(`http://localhost:8080/task-lists/${listId}/tasks/${taskId}`, {
+      method: "DELETE",
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
+        }
+        if (view === "detail") {
+          fetchSingleTaskList(listId);
+        } else {
+          fetchTaskLists();
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(`Delete failed: ${err.message}.`);
+        setLoading(false);
+      });
+  };
+
   const handleBackToDashboard = () => {
     setView("dashboard");
     setSelectedList(null);
@@ -478,12 +505,21 @@ function App() {
                                   </div>
                                 </form>
                               ) : (
-                                <div className="task-info">
-                                  <span className="task-title">{task.title}</span>
-                                  <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>
-                                    {task.priority[0]}
-                                  </span>
-                                </div>
+                                  <div className="task-info">
+                                    <span className="task-title">{task.title}</span>
+                                    <div className="task-actions">
+                                      <button 
+                                        className="delete-icon-btn small" 
+                                        onClick={(e) => handleDeleteTask(e, list.id, task.id)}
+                                        title="Delete Task"
+                                      >
+                                        🗑
+                                      </button>
+                                      <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>
+                                        {task.priority[0]}
+                                      </span>
+                                    </div>
+                                  </div>
                               )}
                             </li>
                           ))}
@@ -775,9 +811,18 @@ function App() {
                           <div className="task-info">
                             <span className="task-title">{task.title}</span>
                             <div className="task-meta">
-                              <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>
-                                {task.priority}
-                              </span>
+                              <div className="header-actions">
+                                <button 
+                                  className="delete-icon-btn small" 
+                                  onClick={(e) => handleDeleteTask(e, selectedList.id, task.id)}
+                                  title="Delete Task"
+                                >
+                                  🗑
+                                </button>
+                                <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>
+                                  {task.priority}
+                                </span>
+                              </div>
                               <span className="due-date">
                                 {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No due date"}
                               </span>
