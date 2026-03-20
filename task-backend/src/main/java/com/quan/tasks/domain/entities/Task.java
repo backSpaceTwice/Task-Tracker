@@ -124,7 +124,7 @@ public class Task {
         return update;
     }
 
-    public void setUpdate(LocalDateTime update) {
+    public void setUpdated(LocalDateTime update) {
         this.update = update;
     }
 
