@@ -18,7 +18,8 @@ public class TaskMappersImpl implements TaskMapper {
                 taskDto.priority(),
                 null,
                 null,
-                null
+                taskDto.created(),
+                taskDto.updated()
         );
     }
 
@@ -30,7 +31,9 @@ public class TaskMappersImpl implements TaskMapper {
                 task.getDescription(),
                 task.getDueDate(),
                 task.getPriority(),
-                task.getStatus()
+                task.getStatus(),
+                task.getCreated(),
+                task.getUpdated()
         );
     }
 }
