@@ -1,7 +1,6 @@
 package com.quan.tasks.domain.entities;
 
 import jakarta.persistence.*;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -35,16 +34,20 @@ public class Task {
     @JoinColumn(name = "task_list_id")
     private TaskList taskList;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
     @Column(name = "created", nullable = false)
     private LocalDateTime created;
 
     @Column(name = "updated", nullable = false)
-    private LocalDateTime update;
+    private LocalDateTime updated;
 
     public Task() {
     }
 
-    public Task(UUID id, String title, String description, LocalDateTime dueDate, TaskStatus status, TaskPriority priority, TaskList taskList, LocalDateTime created, LocalDateTime update) {
+    public Task(UUID id, String title, String description, LocalDateTime dueDate, TaskStatus status, TaskPriority priority, TaskList taskList, Category category, LocalDateTime created, LocalDateTime updated) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -52,8 +55,9 @@ public class Task {
         this.status = status;
         this.priority = priority;
         this.taskList = taskList;
+        this.category = category;
         this.created = created;
-        this.update = update;
+        this.updated = updated;
     }
 
     public UUID getId() {
@@ -112,6 +116,14 @@ public class Task {
         this.taskList = taskList;
     }
 
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
     public LocalDateTime getCreated() {
         return created;
     }
@@ -120,24 +132,25 @@ public class Task {
         this.created = created;
     }
 
-    public LocalDateTime getUpdate() {
-        return update;
+    public LocalDateTime getUpdated() {
+        return updated;
     }
 
-    public void setUpdated(LocalDateTime update) {
-        this.update = update;
+    public void setUpdated(LocalDateTime updated) {
+        this.updated = updated;
     }
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Task task = (Task) o;
-        return Objects.equals(id, task.id) && Objects.equals(title, task.title) && Objects.equals(description, task.description) && Objects.equals(dueDate, task.dueDate) && status == task.status && priority == task.priority && Objects.equals(taskList, task.taskList) && Objects.equals(created, task.created) && Objects.equals(update, task.update);
+        return Objects.equals(id, task.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, title, description, dueDate, status, priority, taskList, created, update);
+        return Objects.hash(id);
     }
 
     @Override
@@ -149,9 +162,8 @@ public class Task {
                 ", dueDate=" + dueDate +
                 ", status=" + status +
                 ", priority=" + priority +
-                ", taskList=" + taskList +
                 ", created=" + created +
-                ", update=" + update +
+                ", updated=" + updated +
                 '}';
     }
 }
