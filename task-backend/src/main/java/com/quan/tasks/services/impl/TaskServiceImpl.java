@@ -58,6 +58,7 @@ public class TaskServiceImpl implements TaskService {
                 taskStatus,
                 taskPriority,
                 taskList,
+                null,
                 now,
                 now
         );
