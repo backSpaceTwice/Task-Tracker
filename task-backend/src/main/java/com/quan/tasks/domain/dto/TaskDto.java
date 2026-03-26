@@ -13,6 +13,7 @@ public record TaskDto(
         LocalDateTime dueDate,
         TaskPriority priority,
         TaskStatus status,
+        UUID categoryId,
         LocalDateTime created,
         LocalDateTime updated
         ) {

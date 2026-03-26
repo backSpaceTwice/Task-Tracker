@@ -11,7 +11,10 @@ const Dashboard = ({
   isCreating,
   onAddTask,
   onUpdateTask,
-  onDeleteTask
+  onPatchTask,
+  onMarkAllCompleted,
+  onDeleteTask,
+  categories
 }) => {
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
@@ -66,7 +69,10 @@ const Dashboard = ({
             onDelete={onDeleteList}
             onAddTask={onAddTask}
             onUpdateTask={onUpdateTask}
+            onPatchTask={onPatchTask}
+            onMarkAllCompleted={onMarkAllCompleted}
             onDeleteTask={onDeleteTask}
+            categories={categories}
           />
         ))}
       </div>

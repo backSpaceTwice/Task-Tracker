@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 
-const TaskItem = ({ task, listId, onUpdate, onDelete, compact = false }) => {
+const TaskItem = ({ task, listId, onUpdate, onPatchTask, onDelete, categories = [], compact = false }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description || "");
   const [editDueDate, setEditDueDate] = useState(task.dueDate ? task.dueDate.split('T')[0] : "");
   const [editPriority, setEditPriority] = useState(task.priority);
   const [editStatus, setEditStatus] = useState(task.status);
+  const [editCategoryId, setEditCategoryId] = useState(task.categoryId || "");
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleStartEdit = (e) => {
@@ -23,6 +24,17 @@ const TaskItem = ({ task, listId, onUpdate, onDelete, compact = false }) => {
     setEditDueDate(task.dueDate ? task.dueDate.split('T')[0] : "");
     setEditPriority(task.priority);
     setEditStatus(task.status);
+    setEditCategoryId(task.categoryId || "");
+  };
+
+  const handleStatusToggle = async (e) => {
+    e.stopPropagation();
+    const newStatus = task.status === 'OPEN' ? 'CLOSED' : 'OPEN';
+    try {
+      await onPatchTask(listId, task.id, { status: newStatus });
+    } catch (err) {
+      console.error("Failed to toggle status", err);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -36,7 +48,8 @@ const TaskItem = ({ task, listId, onUpdate, onDelete, compact = false }) => {
         description: editDescription,
         dueDate: editDueDate,
         priority: editPriority,
-        status: editStatus
+        status: editStatus,
+        categoryId: editCategoryId || null
       });
       setIsEditing(false);
     } catch (err) {
@@ -45,6 +58,8 @@ const TaskItem = ({ task, listId, onUpdate, onDelete, compact = false }) => {
       setIsUpdating(false);
     }
   };
+
+  const category = categories.find(c => c.id === task.categoryId);
 
   if (isEditing) {
     return (
@@ -97,19 +112,33 @@ const TaskItem = ({ task, listId, onUpdate, onDelete, compact = false }) => {
             )}
           </div>
           {!compact && (
-            <div className="form-group">
-              <label>Priority</label>
-              <div className="priority-selector small">
-                {['LOW', 'MEDIUM', 'HIGH'].map(p => (
-                  <button
-                    key={p}
-                    type="button"
-                    className={`priority-btn ${p.toLowerCase()} ${editPriority === p ? 'active' : ''}`}
-                    onClick={() => setEditPriority(p)}
-                  >
-                    {p}
-                  </button>
-                ))}
+            <div className="form-row">
+              <div className="form-group">
+                <label>Category</label>
+                <select 
+                  value={editCategoryId} 
+                  onChange={(e) => setEditCategoryId(e.target.value)}
+                >
+                  <option value="">No Category</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.title}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Priority</label>
+                <div className="priority-selector small">
+                  {['LOW', 'MEDIUM', 'HIGH'].map(p => (
+                    <button
+                      key={p}
+                      type="button"
+                      className={`priority-btn ${p.toLowerCase()} ${editPriority === p ? 'active' : ''}`}
+                      onClick={() => setEditPriority(p)}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -133,8 +162,23 @@ const TaskItem = ({ task, listId, onUpdate, onDelete, compact = false }) => {
       className={`task-item status-${task.status.toLowerCase()} clickable`}
       onClick={handleStartEdit}
     >
+      <div className="task-checkbox-container" onClick={handleStatusToggle}>
+        <div className={`task-checkbox ${task.status === 'CLOSED' ? 'checked' : ''}`}>
+          {task.status === 'CLOSED' && '✓'}
+        </div>
+      </div>
       <div className="task-info">
-        <span className="task-title">{task.title}</span>
+        <div className="task-title-row">
+          <span className="task-title">{task.title}</span>
+          {category && (
+            <span 
+              className="category-badge" 
+              style={{ backgroundColor: category.color + '22', color: category.color, borderColor: category.color }}
+            >
+              {category.title}
+            </span>
+          )}
+        </div>
         <div className={compact ? "task-actions" : "task-meta"}>
           {!compact && (
             <div className="header-actions">

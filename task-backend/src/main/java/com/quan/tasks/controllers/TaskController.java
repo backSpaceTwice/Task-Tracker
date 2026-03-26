@@ -2,6 +2,7 @@ package com.quan.tasks.controllers;
 
 import com.quan.tasks.domain.dto.TaskDto;
 import com.quan.tasks.domain.entities.Task;
+import com.quan.tasks.domain.entities.TaskStatus;
 import com.quan.tasks.mappers.TaskMapper;
 import com.quan.tasks.services.TaskService;
 import org.springframework.web.bind.annotation.*;
@@ -61,6 +62,23 @@ public class TaskController {
                 taskMapper.fromDto(taskDto)
         );
         return taskMapper.toDto(updatedTask);
+    }
+
+    @PatchMapping(path = "/{task_id}")
+    public TaskDto patchTask(
+            @PathVariable("task_list_id") UUID taskListId,
+            @PathVariable("task_id") UUID taskId,
+            @RequestBody TaskDto taskDto
+    ) {
+        if (null != taskDto.status()) {
+            Task updatedTask = taskService.updateTaskStatus(
+                    taskListId,
+                    taskId,
+                    taskDto.status()
+            );
+            return taskMapper.toDto(updatedTask);
+        }
+        throw new IllegalArgumentException("Status must be provided for patch operation!");
     }
 
     @DeleteMapping(path = "/{task_id}")

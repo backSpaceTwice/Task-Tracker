@@ -10,8 +10,11 @@ const TaskListCard = ({
   onDelete, 
   onDeleteTask, 
   onUpdateTask,
+  onPatchTask,
+  onMarkAllCompleted,
   onAddTask,
-  isCreatingTask 
+  isCreatingTask,
+  categories = []
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(list.title);
@@ -57,6 +60,8 @@ const TaskListCard = ({
     setShowAddTask(false);
   };
 
+  const openTaskCount = list.tasks ? list.tasks.filter(t => t.status === 'OPEN').length : 0;
+
   return (
     <div 
       className={`task-list-card clickable`}
@@ -75,6 +80,7 @@ const TaskListCard = ({
           </div>
           <div className="form-group">
             <textarea
+              id="edit-description"
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
               placeholder="Description"
@@ -94,12 +100,21 @@ const TaskListCard = ({
           <div className="task-list-header">
             <h2>{list.title}</h2>
             <div className="header-actions">
+              {openTaskCount > 0 && (
+                <button 
+                  className="mark-all-btn" 
+                  onClick={(e) => { e.stopPropagation(); onMarkAllCompleted(list.id); }}
+                  title="Mark all as completed"
+                >
+                  ✓ All
+                </button>
+              )}
               <button 
                 className="add-task-btn"
                 onClick={toggleAddTask}
                 title="Add Task"
               >
-                + Task
+                +
               </button>
               <button 
                 className="edit-icon-btn" 
@@ -130,7 +145,9 @@ const TaskListCard = ({
                     listId={list.id} 
                     compact={true}
                     onUpdate={onUpdateTask}
+                    onPatchTask={onPatchTask}
                     onDelete={onDeleteTask}
+                    categories={categories}
                   />
                 ))}
               </ul>
@@ -145,6 +162,7 @@ const TaskListCard = ({
             onSave={handleSaveTask} 
             onCancel={() => setShowAddTask(false)} 
             isCreating={isCreatingTask}
+            categories={categories}
           />
         </div>
       )}

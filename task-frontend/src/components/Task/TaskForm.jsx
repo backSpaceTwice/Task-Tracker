@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 
-const TaskForm = ({ onSave, onCancel, isCreating, title: initialTitle = "" }) => {
+const TaskForm = ({ onSave, onCancel, isCreating, categories = [], title: initialTitle = "" }) => {
   const [taskTitle, setTaskTitle] = useState(initialTitle);
   const [taskDescription, setTaskDescription] = useState("");
   const [taskDueDate, setTaskDueDate] = useState("");
   const [taskPriority, setTaskPriority] = useState("MEDIUM");
+  const [taskCategoryId, setTaskCategoryId] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -12,7 +13,8 @@ const TaskForm = ({ onSave, onCancel, isCreating, title: initialTitle = "" }) =>
       title: taskTitle,
       description: taskDescription,
       dueDate: taskDueDate,
-      priority: taskPriority
+      priority: taskPriority,
+      categoryId: taskCategoryId || null
     });
   };
 
@@ -38,6 +40,18 @@ const TaskForm = ({ onSave, onCancel, isCreating, title: initialTitle = "" }) =>
       </div>
       <div className="form-row">
         <div className="form-group">
+          <label>Category</label>
+          <select 
+            value={taskCategoryId} 
+            onChange={(e) => setTaskCategoryId(e.target.value)}
+          >
+            <option value="">No Category</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.id}>{cat.title}</option>
+            ))}
+          </select>
+        </div>
+        <div className="form-group">
           <label>Due Date</label>
           <input
             type="date"
@@ -45,20 +59,20 @@ const TaskForm = ({ onSave, onCancel, isCreating, title: initialTitle = "" }) =>
             onChange={(e) => setTaskDueDate(e.target.value)}
           />
         </div>
-        <div className="form-group">
-          <label>Priority</label>
-          <div className="priority-selector">
-            {['LOW', 'MEDIUM', 'HIGH'].map(p => (
-              <button
-                key={p}
-                type="button"
-                className={`priority-btn ${p.toLowerCase()} ${taskPriority === p ? 'active' : ''}`}
-                onClick={() => setTaskPriority(p)}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
+      </div>
+      <div className="form-group">
+        <label>Priority</label>
+        <div className="priority-selector">
+          {['LOW', 'MEDIUM', 'HIGH'].map(p => (
+            <button
+              key={p}
+              type="button"
+              className={`priority-btn ${p.toLowerCase()} ${taskPriority === p ? 'active' : ''}`}
+              onClick={() => setTaskPriority(p)}
+            >
+              {p}
+            </button>
+          ))}
         </div>
       </div>
       <div className="form-actions">

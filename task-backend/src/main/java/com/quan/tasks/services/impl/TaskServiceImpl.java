@@ -1,9 +1,11 @@
 package com.quan.tasks.services.impl;
 
+import com.quan.tasks.domain.entities.Category;
 import com.quan.tasks.domain.entities.Task;
 import com.quan.tasks.domain.entities.TaskList;
 import com.quan.tasks.domain.entities.TaskPriority;
 import com.quan.tasks.domain.entities.TaskStatus;
+import com.quan.tasks.repositories.CategoryRepository;
 import com.quan.tasks.repositories.TaskListRepository;
 import com.quan.tasks.repositories.TaskRepository;
 import com.quan.tasks.services.TaskService;
@@ -21,10 +23,12 @@ public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
     private final TaskListRepository taskListRepository;
+    private final CategoryRepository categoryRepository;
 
-    public TaskServiceImpl(TaskRepository taskRepository, TaskListRepository taskListRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository, TaskListRepository taskListRepository, CategoryRepository categoryRepository) {
         this.taskRepository = taskRepository;
         this.taskListRepository = taskListRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @Override
@@ -49,6 +53,12 @@ public class TaskServiceImpl implements TaskService {
         TaskList taskList = taskListRepository.findById(taskListId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Task List ID provided!"));
 
+        Category category = null;
+        if (null != task.getCategory() && null != task.getCategory().getId()) {
+            category = categoryRepository.findById(task.getCategory().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid Category ID provided!"));
+        }
+
         LocalDateTime now = LocalDateTime.now();
         Task taskToSave = new Task(
                 null,
@@ -58,7 +68,7 @@ public class TaskServiceImpl implements TaskService {
                 taskStatus,
                 taskPriority,
                 taskList,
-                null,
+                category,
                 now,
                 now
         );
@@ -97,6 +107,25 @@ public class TaskServiceImpl implements TaskService {
         existingTask.setStatus(task.getStatus());
         existingTask.setUpdated(LocalDateTime.now());
 
+        if (null != task.getCategory() && null != task.getCategory().getId()) {
+            Category category = categoryRepository.findById(task.getCategory().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid Category ID provided!"));
+            existingTask.setCategory(category);
+        } else {
+            existingTask.setCategory(null);
+        }
+
+        return taskRepository.save(existingTask);
+    }
+
+    @Transactional
+    @Override
+    public Task updateTaskStatus(UUID taskListId, UUID taskId, TaskStatus status) {
+        Task existingTask = taskRepository.findByTaskListIdAndId(taskListId, taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found!"));
+
+        existingTask.setStatus(status);
+        existingTask.setUpdated(LocalDateTime.now());
         return taskRepository.save(existingTask);
     }
 

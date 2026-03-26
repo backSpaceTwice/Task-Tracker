@@ -9,14 +9,18 @@ const DetailView = ({
   onDeleteList, 
   onAddTask,
   onUpdateTask,
+  onPatchTask,
+  onMarkAllCompleted,
   onDeleteTask,
   isUpdatingList,
-  isCreatingTask
+  isCreatingTask,
+  categories = []
 }) => {
   const [isEditingHeader, setIsEditingHeader] = useState(false);
   const [editTitle, setEditTitle] = useState(list.title);
   const [editDescription, setEditDescription] = useState(list.description || "");
   const [showAddTask, setShowAddTask] = useState(false);
+  const [hideCompleted, setHideCompleted] = useState(false);
 
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
@@ -34,6 +38,12 @@ const DetailView = ({
     await onAddTask(list.id, taskData);
     setShowAddTask(false);
   };
+
+  const openTaskCount = list.tasks ? list.tasks.filter(t => t.status === 'OPEN').length : 0;
+  
+  const filteredTasks = hideCompleted 
+    ? (list.tasks ? list.tasks.filter(t => t.status === 'OPEN') : [])
+    : (list.tasks || []);
 
   return (
     <div className="detail-view">
@@ -72,6 +82,21 @@ const DetailView = ({
             <div className="task-list-header">
               <h2>{list.title}</h2>
               <div className="header-actions">
+                {openTaskCount > 0 && (
+                  <button 
+                    className="mark-all-btn" 
+                    onClick={() => onMarkAllCompleted(list.id)}
+                    title="Mark all as completed"
+                  >
+                    ✓ Mark All Done
+                  </button>
+                )}
+                <button 
+                  className={`filter-btn ${hideCompleted ? 'active' : ''}`}
+                  onClick={() => setHideCompleted(!hideCompleted)}
+                >
+                  {hideCompleted ? "👁 Show All" : "👁 Hide Done"}
+                </button>
                 <button 
                   className="add-task-btn"
                   onClick={() => setShowAddTask(!showAddTask)}
@@ -106,6 +131,7 @@ const DetailView = ({
               onCancel={() => setShowAddTask(false)}
               isCreating={isCreatingTask}
               title={list.title}
+              categories={categories}
             />
           </div>
         )}
@@ -114,20 +140,24 @@ const DetailView = ({
 
         <div className="tasks-section">
           <h3>Tasks in this List</h3>
-          {list.tasks && list.tasks.length > 0 ? (
+          {filteredTasks.length > 0 ? (
             <ul className="task-items">
-              {list.tasks.map((task) => (
+              {filteredTasks.map((task) => (
                 <TaskItem 
                   key={task.id} 
                   task={task} 
                   listId={list.id} 
                   onUpdate={onUpdateTask}
+                  onPatchTask={onPatchTask}
                   onDelete={onDeleteTask}
+                  categories={categories}
                 />
               ))}
             </ul>
           ) : (
-            <p className="no-tasks">No tasks found in this list.</p>
+            <p className="no-tasks">
+              {hideCompleted ? "No open tasks! Everything is done. 🎉" : "No tasks found in this list."}
+            </p>
           )}
         </div>
       </div>

@@ -1,6 +1,7 @@
 package com.quan.tasks.services;
 
 import com.quan.tasks.domain.entities.Task;
+import com.quan.tasks.domain.entities.TaskStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,4 +13,5 @@ public interface TaskService {
     Optional<Task> getTask(UUID taskListId, UUID id);
     Task updateTask(UUID taskListId, UUID taskId, Task task);
     void deleteTask(UUID taskListId, UUID taskId);
+    Task updateTaskStatus(UUID taskListId, UUID taskId, TaskStatus status);
 }
