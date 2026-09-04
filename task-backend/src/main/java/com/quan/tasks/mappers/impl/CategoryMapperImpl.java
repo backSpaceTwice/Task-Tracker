@@ -12,14 +12,11 @@ public class CategoryMapperImpl implements CategoryMapper {
 
     @Override
     public Category fromDto(CategoryDto categoryDto) {
-        return new Category(
-                categoryDto.id(),
-                categoryDto.title(),
-                categoryDto.color(),
-                null, // tasks
-                null, // created
-                null  // updated
-        );
+        Category category = new Category();
+        category.setId(categoryDto.id());
+        category.setTitle(categoryDto.title());
+        category.setColor(categoryDto.color());
+        return category;
     }
 
     @Override

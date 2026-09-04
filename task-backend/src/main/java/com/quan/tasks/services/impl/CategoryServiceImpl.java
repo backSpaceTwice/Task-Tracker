@@ -1,7 +1,9 @@
 package com.quan.tasks.services.impl;
 
 import com.quan.tasks.domain.entities.Category;
+import com.quan.tasks.domain.entities.Task;
 import com.quan.tasks.repositories.CategoryRepository;
+import com.quan.tasks.repositories.TaskRepository;
 import com.quan.tasks.services.CategoryService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -16,9 +18,11 @@ import java.util.UUID;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final TaskRepository taskRepository;
 
-    public CategoryServiceImpl(CategoryRepository categoryRepository) {
+    public CategoryServiceImpl(CategoryRepository categoryRepository, TaskRepository taskRepository) {
         this.categoryRepository = categoryRepository;
+        this.taskRepository = taskRepository;
     }
 
     @Override
@@ -65,8 +69,17 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.save(existingCategory);
     }
 
+    @Transactional
     @Override
     public void deleteCategory(UUID id) {
-        categoryRepository.deleteById(id);
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Category not found"));
+
+        // Deleting a category must not delete the tasks in it - only detach them.
+        List<Task> categorizedTasks = taskRepository.findByCategoryId(id);
+        categorizedTasks.forEach(task -> task.setCategory(null));
+        taskRepository.saveAll(categorizedTasks);
+
+        categoryRepository.delete(category);
     }
 }

@@ -36,14 +36,13 @@ public class TaskListServiceImpl implements TaskListService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        return taskListRepository.save(new TaskList(
-                null,
-                taskList.getTitle(),
-                taskList.getDescription(),
-                null,
-                now,
-                now
-        ));
+        TaskList taskListToSave = new TaskList();
+        taskListToSave.setTitle(taskList.getTitle());
+        taskListToSave.setDescription(taskList.getDescription());
+        taskListToSave.setCreated(now);
+        taskListToSave.setUpdated(now);
+
+        return taskListRepository.save(taskListToSave);
     }
 
     @Override

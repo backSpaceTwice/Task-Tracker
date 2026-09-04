@@ -34,15 +34,6 @@ public class TaskList {
     public TaskList() {
     }
 
-    public TaskList(UUID id, String title, String description, List<Task> tasks, LocalDateTime created, LocalDateTime updated) {
-        this.id = id;
-        this.title = title;
-        this.tasks = tasks;
-        this.description = description;
-        this.created = created;
-        this.updated = updated;
-    }
-
     public UUID getId() {
         return id;
     }
@@ -93,14 +84,15 @@ public class TaskList {
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TaskList taskList = (TaskList) o;
-        return Objects.equals(id, taskList.id) && Objects.equals(title, taskList.title) && Objects.equals(tasks, taskList.tasks) && Objects.equals(description, taskList.description) && Objects.equals(created, taskList.created) && Objects.equals(updated, taskList.updated);
+        return Objects.equals(id, taskList.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, title, tasks, description, created, updated);
+        return Objects.hash(id);
     }
 
     @Override
@@ -108,7 +100,6 @@ public class TaskList {
         return "TaskList{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
-                ", tasks=" + tasks +
                 ", description='" + description + '\'' +
                 ", created=" + created +
                 ", updated=" + updated +

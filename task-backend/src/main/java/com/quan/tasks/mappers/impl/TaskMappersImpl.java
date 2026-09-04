@@ -18,18 +18,17 @@ public class TaskMappersImpl implements TaskMapper {
             category.setId(taskDto.categoryId());
         }
 
-        return new Task(
-                taskDto.id(),
-                taskDto.title(),
-                taskDto.description(),
-                taskDto.dueDate(),
-                taskDto.status(),
-                taskDto.priority(),
-                null,
-                category,
-                taskDto.created(),
-                taskDto.updated()
-        );
+        Task task = new Task();
+        task.setId(taskDto.id());
+        task.setTitle(taskDto.title());
+        task.setDescription(taskDto.description());
+        task.setDueDate(taskDto.dueDate());
+        task.setStatus(taskDto.status());
+        task.setPriority(taskDto.priority());
+        task.setCategory(category);
+        task.setCreated(taskDto.created());
+        task.setUpdated(taskDto.updated());
+        return task;
     }
 
     @Override
