@@ -60,18 +60,16 @@ public class TaskServiceImpl implements TaskService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        Task taskToSave = new Task(
-                null,
-                task.getTitle(),
-                task.getDescription(),
-                task.getDueDate(),
-                taskStatus,
-                taskPriority,
-                taskList,
-                category,
-                now,
-                now
-        );
+        Task taskToSave = new Task();
+        taskToSave.setTitle(task.getTitle());
+        taskToSave.setDescription(task.getDescription());
+        taskToSave.setDueDate(task.getDueDate());
+        taskToSave.setStatus(taskStatus);
+        taskToSave.setPriority(taskPriority);
+        taskToSave.setTaskList(taskList);
+        taskToSave.setCategory(category);
+        taskToSave.setCreated(now);
+        taskToSave.setUpdated(now);
 
         return taskRepository.save(taskToSave);
     }

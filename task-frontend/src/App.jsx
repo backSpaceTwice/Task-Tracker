@@ -3,6 +3,7 @@ import "./App.css";
 import Header from "./components/common/Header";
 import Dashboard from "./components/TaskList/Dashboard";
 import DetailView from "./components/DetailView/DetailView";
+import { apiRequest, normalizeDueDate } from "./api/client";
 
 function App() {
   const [taskLists, setTaskLists] = useState([]);
@@ -10,7 +11,6 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isCreatingList, setIsCreatingList] = useState(false);
-  const [isUpdatingList, setIsUpdatingList] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isManagingCategories, setIsManagingCategories] = useState(false);
 
@@ -18,173 +18,126 @@ function App() {
   const [view, setView] = useState("dashboard"); // 'dashboard' or 'detail'
   const [selectedList, setSelectedList] = useState(null);
 
-  const fetchCategories = () => {
-    fetch("http://localhost:8080/categories")
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        setCategories(data);
-      })
-      .catch((err) => {
-        setError(`Fetch categories failed: ${err.message}`);
-      });
+  const fetchCategories = async () => {
+    try {
+      const data = await apiRequest("/categories");
+      setCategories(data);
+    } catch (err) {
+      setError(`Fetch categories failed: ${err.message}`);
+    }
   };
 
-  const handleCreateCategory = (categoryData) => {
-    fetch("http://localhost:8080/categories", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(categoryData),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-        return res.json();
-      })
-      .then(() => {
-        fetchCategories();
-      })
-      .catch((err) => {
-        setError(`Create category failed: ${err.message}`);
-      });
+  const handleCreateCategory = async (categoryData) => {
+    try {
+      await apiRequest("/categories", { method: "POST", body: categoryData });
+      await fetchCategories();
+    } catch (err) {
+      setError(`Create category failed: ${err.message}`);
+    }
   };
 
-  const handleDeleteCategory = (id) => {
+  const handleDeleteCategory = async (id) => {
     if (!window.confirm("Are you sure? This won't delete tasks but will remove them from this category.")) return;
-    fetch(`http://localhost:8080/categories/${id}`, { method: "DELETE" })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-        fetchCategories();
-        if (view === "detail" && selectedList) {
-          fetchSingleTaskList(selectedList.id);
-        } else {
-          fetchTaskLists();
-        }
-      })
-      .catch((err) => {
-        setError(`Delete category failed: ${err.message}`);
-      });
+
+    try {
+      await apiRequest(`/categories/${id}`, { method: "DELETE" });
+      await fetchCategories();
+      if (view === "detail" && selectedList) {
+        await fetchSingleTaskList(selectedList.id);
+      } else {
+        await fetchTaskLists();
+      }
+    } catch (err) {
+      setError(`Delete category failed: ${err.message}`);
+    }
   };
 
-  const fetchTaskLists = () => {
+  const fetchTaskLists = async () => {
     setLoading(true);
-    fetch("http://localhost:8080/task-lists")
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        setTaskLists(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(`Fetch failed: ${err.message}`);
-        setLoading(false);
-      });
+    try {
+      const data = await apiRequest("/task-lists");
+      setTaskLists(data);
+    } catch (err) {
+      setError(`Fetch failed: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const fetchSingleTaskList = (id) => {
+  const fetchSingleTaskList = async (id) => {
     setLoading(true);
-    fetch(`http://localhost:8080/task-lists/${id}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        setSelectedList(data);
-        setView("detail");
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(`Fetch failed: ${err.message}`);
-        setLoading(false);
-      });
+    try {
+      const data = await apiRequest(`/task-lists/${id}`);
+      setSelectedList(data);
+      setView("detail");
+    } catch (err) {
+      setError(`Fetch failed: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCreateTaskList = (listData) => {
+  const handleCreateTaskList = async (listData) => {
     setIsCreatingList(true);
-    fetch("http://localhost:8080/task-lists", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(listData),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-        return res.json();
-      })
-      .then(() => {
-        setIsCreatingList(false);
-        fetchTaskLists();
-      })
-      .catch((err) => {
-        setError(`Create failed: ${err.message}`);
-        setIsCreatingList(false);
-      });
+    try {
+      await apiRequest("/task-lists", { method: "POST", body: listData });
+      await fetchTaskLists();
+    } catch (err) {
+      setError(`Create failed: ${err.message}`);
+    } finally {
+      setIsCreatingList(false);
+    }
   };
 
   const handleUpdateTaskList = async (listId, listData) => {
-    setIsUpdatingList(true);
     try {
-      const res = await fetch(`http://localhost:8080/task-lists/${listId}`, {
+      const updatedList = await apiRequest(`/task-lists/${listId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: listId, ...listData }),
+        body: { id: listId, ...listData },
       });
-      if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-      const updatedList = await res.json();
-      
+
       if (view === "detail") {
         setSelectedList(updatedList);
       } else {
-        fetchTaskLists();
+        await fetchTaskLists();
       }
       return updatedList;
     } catch (err) {
       setError(`Update failed: ${err.message}`);
       throw err;
-    } finally {
-      setIsUpdatingList(false);
     }
   };
 
-  const handleDeleteTaskList = (e, id) => {
+  const handleDeleteTaskList = async (e, id) => {
     e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this task list?")) return;
 
     setLoading(true);
-    fetch(`http://localhost:8080/task-lists/${id}`, { method: "DELETE" })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-        if (view === "detail") {
-          handleBackToDashboard();
-        } else {
-          fetchTaskLists();
-        }
-      })
-      .catch((err) => {
-        setError(`Delete failed: ${err.message}`);
-        setLoading(false);
-      });
+    try {
+      await apiRequest(`/task-lists/${id}`, { method: "DELETE" });
+      if (view === "detail") {
+        handleBackToDashboard();
+      } else {
+        await fetchTaskLists();
+      }
+    } catch (err) {
+      setError(`Delete failed: ${err.message}`);
+      setLoading(false);
+    }
   };
 
   const handleCreateTask = async (listId, taskData) => {
     setIsCreatingTask(true);
     try {
-      const res = await fetch(`http://localhost:8080/task-lists/${listId}/tasks`, {
+      await apiRequest(`/task-lists/${listId}/tasks`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...taskData,
-          dueDate: taskData.dueDate ? `${taskData.dueDate}T00:00:00` : null,
-        }),
+        body: { ...taskData, dueDate: normalizeDueDate(taskData.dueDate) },
       });
-      if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-      
-      if (view === 'detail') {
-        fetchSingleTaskList(listId);
+
+      if (view === "detail") {
+        await fetchSingleTaskList(listId);
       } else {
-        fetchTaskLists();
+        await fetchTaskLists();
       }
     } catch (err) {
       setError(`Task creation failed: ${err.message}`);
@@ -195,23 +148,15 @@ function App() {
 
   const handleUpdateTask = async (listId, taskId, taskData) => {
     try {
-      const res = await fetch(`http://localhost:8080/task-lists/${listId}/tasks/${taskId}`, {
+      await apiRequest(`/task-lists/${listId}/tasks/${taskId}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: taskId,
-          ...taskData,
-          dueDate: taskData.dueDate && !taskData.dueDate.includes('T') 
-            ? `${taskData.dueDate}T00:00:00` 
-            : taskData.dueDate,
-        }),
+        body: { id: taskId, ...taskData, dueDate: normalizeDueDate(taskData.dueDate) },
       });
-      if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-      
-      if (view === 'detail') {
-        fetchSingleTaskList(listId);
+
+      if (view === "detail") {
+        await fetchSingleTaskList(listId);
       } else {
-        fetchTaskLists();
+        await fetchTaskLists();
       }
     } catch (err) {
       setError(`Task update failed: ${err.message}`);
@@ -221,17 +166,15 @@ function App() {
 
   const handlePatchTask = async (listId, taskId, taskData) => {
     try {
-      const res = await fetch(`http://localhost:8080/task-lists/${listId}/tasks/${taskId}`, {
+      await apiRequest(`/task-lists/${listId}/tasks/${taskId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(taskData),
+        body: taskData,
       });
-      if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-      
-      if (view === 'detail') {
-        fetchSingleTaskList(listId);
+
+      if (view === "detail") {
+        await fetchSingleTaskList(listId);
       } else {
-        fetchTaskLists();
+        await fetchTaskLists();
       }
     } catch (err) {
       setError(`Task patch failed: ${err.message}`);
@@ -242,7 +185,7 @@ function App() {
   const handleMarkAllCompleted = async (listId) => {
     const list = taskLists.find(l => l.id === listId) || (selectedList?.id === listId ? selectedList : null);
     if (!list || !list.tasks) return;
-    
+
     const openTasks = list.tasks.filter(t => t.status === 'OPEN');
     if (openTasks.length === 0) return;
 
@@ -250,18 +193,17 @@ function App() {
 
     setLoading(true);
     try {
-      await Promise.all(openTasks.map(task => 
-        fetch(`http://localhost:8080/task-lists/${listId}/tasks/${task.id}`, {
+      await Promise.all(openTasks.map(task =>
+        apiRequest(`/task-lists/${listId}/tasks/${task.id}`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: 'CLOSED' }),
+          body: { status: 'CLOSED' },
         })
       ));
-      
+
       if (view === 'detail') {
-        fetchSingleTaskList(listId);
+        await fetchSingleTaskList(listId);
       } else {
-        fetchTaskLists();
+        await fetchTaskLists();
       }
     } catch (err) {
       setError(`Failed to mark all completed: ${err.message}`);
@@ -269,24 +211,22 @@ function App() {
     }
   };
 
-  const handleDeleteTask = (e, listId, taskId) => {
+  const handleDeleteTask = async (e, listId, taskId) => {
     e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this task?")) return;
 
     setLoading(true);
-    fetch(`http://localhost:8080/task-lists/${listId}/tasks/${taskId}`, { method: "DELETE" })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-        if (view === "detail") {
-          fetchSingleTaskList(listId);
-        } else {
-          fetchTaskLists();
-        }
-      })
-      .catch((err) => {
-        setError(`Delete failed: ${err.message}`);
-        setLoading(false);
-      });
+    try {
+      await apiRequest(`/task-lists/${listId}/tasks/${taskId}`, { method: "DELETE" });
+      if (view === "detail") {
+        await fetchSingleTaskList(listId);
+      } else {
+        await fetchTaskLists();
+      }
+    } catch (err) {
+      setError(`Delete failed: ${err.message}`);
+      setLoading(false);
+    }
   };
 
   const handleBackToDashboard = () => {
@@ -302,9 +242,9 @@ function App() {
 
   return (
     <div className="container">
-      <Header 
-        view={view} 
-        onBack={handleBackToDashboard} 
+      <Header
+        view={view}
+        onBack={handleBackToDashboard}
         onManageCategories={() => setIsManagingCategories(true)}
       />
 
@@ -350,7 +290,7 @@ function App() {
         <div className="loading">Loading...</div>
       ) : (
         view === "dashboard" ? (
-          <Dashboard 
+          <Dashboard
             taskLists={taskLists}
             loading={loading}
             onViewList={fetchSingleTaskList}
@@ -366,7 +306,7 @@ function App() {
             categories={categories}
           />
         ) : (
-          <DetailView 
+          <DetailView
             list={selectedList}
             onUpdateList={handleUpdateTaskList}
             onDeleteList={handleDeleteTaskList}
@@ -375,7 +315,6 @@ function App() {
             onPatchTask={handlePatchTask}
             onMarkAllCompleted={handleMarkAllCompleted}
             onDeleteTask={handleDeleteTask}
-            isUpdatingList={isUpdatingList}
             isCreatingTask={isCreatingTask}
             categories={categories}
           />

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PrioritySelector from '../common/PrioritySelector';
 
 const TaskForm = ({ onSave, onCancel, isCreating, categories = [], title: initialTitle = "" }) => {
   const [taskTitle, setTaskTitle] = useState(initialTitle);
@@ -62,18 +63,7 @@ const TaskForm = ({ onSave, onCancel, isCreating, categories = [], title: initia
       </div>
       <div className="form-group">
         <label>Priority</label>
-        <div className="priority-selector">
-          {['LOW', 'MEDIUM', 'HIGH'].map(p => (
-            <button
-              key={p}
-              type="button"
-              className={`priority-btn ${p.toLowerCase()} ${taskPriority === p ? 'active' : ''}`}
-              onClick={() => setTaskPriority(p)}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
+        <PrioritySelector value={taskPriority} onChange={setTaskPriority} />
       </div>
       <div className="form-actions">
         <button type="submit" className="save-btn" disabled={isCreating}>

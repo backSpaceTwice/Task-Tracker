@@ -2,37 +2,33 @@ import React, { useState } from 'react';
 import ProgressBar from '../common/ProgressBar';
 import TaskItem from '../Task/TaskItem';
 import TaskForm from '../Task/TaskForm';
+import { useEditableListHeader } from '../../hooks/useEditableListHeader';
 
-const DetailView = ({ 
-  list, 
-  onUpdateList, 
-  onDeleteList, 
+const DetailView = ({
+  list,
+  onUpdateList,
+  onDeleteList,
   onAddTask,
   onUpdateTask,
   onPatchTask,
   onMarkAllCompleted,
   onDeleteTask,
-  isUpdatingList,
   isCreatingTask,
   categories = []
 }) => {
-  const [isEditingHeader, setIsEditingHeader] = useState(false);
-  const [editTitle, setEditTitle] = useState(list.title);
-  const [editDescription, setEditDescription] = useState(list.description || "");
+  const {
+    isEditing: isEditingHeader,
+    editTitle,
+    setEditTitle,
+    editDescription,
+    setEditDescription,
+    isUpdating: isUpdatingList,
+    startEdit,
+    cancelEdit,
+    submitEdit,
+  } = useEditableListHeader(list, onUpdateList);
   const [showAddTask, setShowAddTask] = useState(false);
   const [hideCompleted, setHideCompleted] = useState(false);
-
-  const handleUpdateSubmit = async (e) => {
-    e.preventDefault();
-    if (!editTitle.trim()) return;
-
-    try {
-      await onUpdateList(list.id, { title: editTitle, description: editDescription });
-      setIsEditingHeader(false);
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   const handleSaveTask = async (taskData) => {
     await onAddTask(list.id, taskData);
@@ -40,8 +36,8 @@ const DetailView = ({
   };
 
   const openTaskCount = list.tasks ? list.tasks.filter(t => t.status === 'OPEN').length : 0;
-  
-  const filteredTasks = hideCompleted 
+
+  const filteredTasks = hideCompleted
     ? (list.tasks ? list.tasks.filter(t => t.status === 'OPEN') : [])
     : (list.tasks || []);
 
@@ -49,7 +45,7 @@ const DetailView = ({
     <div className="detail-view">
       <div className="task-list-card main-card">
         {isEditingHeader ? (
-          <form onSubmit={handleUpdateSubmit} className="edit-form">
+          <form onSubmit={submitEdit} className="edit-form">
             <div className="form-group">
               <label>Title</label>
               <input
@@ -72,7 +68,7 @@ const DetailView = ({
               <button type="submit" className="save-btn" disabled={isUpdatingList}>
                 {isUpdatingList ? "Saving..." : "Save"}
               </button>
-              <button type="button" className="cancel-btn" onClick={() => setIsEditingHeader(false)}>
+              <button type="button" className="cancel-btn" onClick={cancelEdit}>
                 Cancel
               </button>
             </div>
@@ -83,35 +79,35 @@ const DetailView = ({
               <h2>{list.title}</h2>
               <div className="header-actions">
                 {openTaskCount > 0 && (
-                  <button 
-                    className="mark-all-btn" 
+                  <button
+                    className="mark-all-btn"
                     onClick={() => onMarkAllCompleted(list.id)}
                     title="Mark all as completed"
                   >
                     ✓ Mark All Done
                   </button>
                 )}
-                <button 
+                <button
                   className={`filter-btn ${hideCompleted ? 'active' : ''}`}
                   onClick={() => setHideCompleted(!hideCompleted)}
                 >
                   {hideCompleted ? "👁 Show All" : "👁 Hide Done"}
                 </button>
-                <button 
+                <button
                   className="add-task-btn"
                   onClick={() => setShowAddTask(!showAddTask)}
                 >
                   {showAddTask ? "Cancel Add" : "+ Add Task"}
                 </button>
-                <button 
-                  className="edit-icon-btn" 
-                  onClick={() => setIsEditingHeader(true)}
+                <button
+                  className="edit-icon-btn"
+                  onClick={startEdit}
                   title="Edit Task List"
                 >
                   ✎
                 </button>
-                <button 
-                  className="delete-icon-btn" 
+                <button
+                  className="delete-icon-btn"
                   onClick={(e) => onDeleteList(e, list.id)}
                   title="Delete Task List"
                 >
@@ -126,8 +122,8 @@ const DetailView = ({
 
         {showAddTask && (
           <div className="task-creation-inline">
-            <TaskForm 
-              onSave={handleSaveTask} 
+            <TaskForm
+              onSave={handleSaveTask}
               onCancel={() => setShowAddTask(false)}
               isCreating={isCreatingTask}
               title={list.title}
@@ -143,10 +139,10 @@ const DetailView = ({
           {filteredTasks.length > 0 ? (
             <ul className="task-items">
               {filteredTasks.map((task) => (
-                <TaskItem 
-                  key={task.id} 
-                  task={task} 
-                  listId={list.id} 
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  listId={list.id}
                   onUpdate={onUpdateTask}
                   onPatchTask={onPatchTask}
                   onDelete={onDeleteTask}

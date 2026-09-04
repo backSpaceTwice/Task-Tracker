@@ -22,7 +22,10 @@ public class Category {
     @Column(name = "color")
     private String color;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    // No cascade: a category is metadata, not an owning aggregate root for
+    // tasks. Deleting a category must detach its tasks (see
+    // CategoryServiceImpl.deleteCategory), never delete them.
+    @OneToMany(mappedBy = "category")
     private List<Task> tasks;
 
     @Column(name = "created", nullable = false)
@@ -32,15 +35,6 @@ public class Category {
     private LocalDateTime updated;
 
     public Category() {
-    }
-
-    public Category(UUID id, String title, String color, List<Task> tasks, LocalDateTime created, LocalDateTime updated) {
-        this.id = id;
-        this.title = title;
-        this.color = color;
-        this.tasks = tasks;
-        this.created = created;
-        this.updated = updated;
     }
 
     public UUID getId() {
